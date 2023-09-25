@@ -1,8 +1,6 @@
 package com.linwqwhu;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,81 +16,79 @@ public class Test146 {
         public DLinkedNode() {
         }
 
-        public DLinkedNode(int _key, int _value) {
-            key = _key;
-            value = _value;
+        public DLinkedNode(int key, int value) {
+            this.key = key;
+            this.value = value;
         }
     }
 
-    private Map<Integer, DLinkedNode> cache = new HashMap<Integer, DLinkedNode>();
+    private Map<Integer, DLinkedNode> cache;
     private int size;
     private int capacity;
     private DLinkedNode head, tail;
 
     public Test146(int capacity) {
-        this.size = 0;
+//        public LRUCache(int capacity) {
+        this.cache = new HashMap<Integer, DLinkedNode>();
         this.capacity = capacity;
-        // 使用伪头部和伪尾部节点
-        head = new DLinkedNode();
-        tail = new DLinkedNode();
+        this.size = 0;
+        this.head = new DLinkedNode();
+        this.tail = new DLinkedNode();
         head.next = tail;
         tail.prev = head;
     }
 
     public int get(int key) {
         DLinkedNode node = cache.get(key);
-        if (node == null) {
-            return -1;
+        if (node != null) {
+            deleteNode(node);
+            addToHead(node);
+            return node.value;
         }
-        // 如果 key 存在，先通过哈希表定位，再移到头部
-        moveToHead(node);
-        return node.value;
+        return -1;
     }
 
     public void put(int key, int value) {
-        DLinkedNode node = cache.get(key);
-        if (node == null) {
-            // 如果 key 不存在，创建一个新的节点
-            DLinkedNode newNode = new DLinkedNode(key, value);
-            // 添加进哈希表
-            cache.put(key, newNode);
-            // 添加至双向链表的头部
-            addToHead(newNode);
-            ++size;
-            if (size > capacity) {
-                // 如果超出容量，删除双向链表的尾部节点
-                DLinkedNode tail = removeTail();
-                // 删除哈希表中对应的项
-                cache.remove(tail.key);
-                --size;
-            }
-        } else {
-            // 如果 key 存在，先通过哈希表定位，再修改 value，并移到头部
+        DLinkedNode node;
+        if (cache.containsKey(key)) {
+            node = cache.get(key);
             node.value = value;
-            moveToHead(node);
+            deleteNode(node);
+        } else {
+            node = new DLinkedNode(key, value);
+        }
+        addToHead(node);
+
+        if (this.size > this.capacity) {
+            deleteNode(tail.prev);
         }
     }
 
-    private void addToHead(DLinkedNode node) {
+    public void deleteNode(DLinkedNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        cache.remove(node.key);
+        this.size--;
+    }
+
+    public void addToHead(DLinkedNode node) {
         node.prev = head;
         node.next = head.next;
         head.next.prev = node;
         head.next = node;
+        cache.put(node.key, node);
+        this.size++;
     }
 
-    private void removeNode(DLinkedNode node) {
-        node.prev.next = node.next;
-        node.next.prev = node.prev;
-    }
 
-    private void moveToHead(DLinkedNode node) {
-        removeNode(node);
-        addToHead(node);
-    }
-
-    private DLinkedNode removeTail() {
-        DLinkedNode res = tail.prev;
-        removeNode(res);
-        return res;
+    public static void main(String[] args) {
+        Test146 lru = new Test146(2);
+        lru.put(1, 1);
+        lru.put(2, 2);
+        int i = lru.get(1);
+        System.out.println(i);
+        lru.put(3, 3);
+        int i1 = lru.get(2);
+        System.out.println(i1);
     }
 }
