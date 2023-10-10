@@ -63,7 +63,7 @@ public class Test460 {
             return -1;
         queue.remove(node);
         node.count++;
-        queue.add(node);
+        queue.offer(node);
 
         deleteNode(node);
         addToHead(node);
@@ -73,33 +73,35 @@ public class Test460 {
     }
 
     public void put(int key, int value) {
-        DLinkedNode node = cache.get(key);
-        if (node == null) {
-            node = new DLinkedNode(key, value);
-
-            //个数已满
-            if (this.size >= this.capacity) {
-                DLinkedNode lessUse = queue.poll();
-                //存在多个相同最少使用次数的
-                if (!queue.isEmpty() && lessUse.count == queue.peek().count) {
-                    queue.add(lessUse);
-                    lessUse = tail.prev;
-                    queue.remove(lessUse);
-                }
-                deleteNode(lessUse);
-            }
-            queue.add(node);
-            addToHead(node);
-        } else {
-
+        DLinkedNode node;
+        if (cache.containsKey(key)) {
+            node = cache.get(key);
             queue.remove(node);
             node.value = value;
             node.count++;
-            queue.add(node);
+            queue.offer(node);
 
             deleteNode(node);
             addToHead(node);
+            return;
         }
+
+        //不存在key=value
+        node = new DLinkedNode(key, value);
+
+        //个数已满
+        if (this.size >= this.capacity) {
+            DLinkedNode lessUse = queue.poll();
+            //至少存在两个相同最少使用次数的
+            if (!queue.isEmpty() && lessUse.count == queue.peek().count) {
+                queue.offer(lessUse);
+                lessUse = tail.prev;
+                queue.remove(lessUse);
+            }
+            deleteNode(lessUse);
+        }
+        queue.offer(node);
+        addToHead(node);
     }
 
     public void addToHead(DLinkedNode node) {
