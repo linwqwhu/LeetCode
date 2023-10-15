@@ -2,6 +2,9 @@ package com.linwqwhu;
 
 import java.util.Arrays;
 
+/**
+ * 2578.最小和分割
+ */
 public class Test2578 {
     public int splitNum(int num) {
         int num1 = 0, num2 = 0;
